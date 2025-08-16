@@ -1,6 +1,6 @@
 {
-	"name": "vscode-workspace-manager",
-	"displayName": "Workspace Manager",
+	"name": "vscode-hkps-workspace-manager",
+	"displayName": "Workspace Manager (HKPS)",
 	"description": "Manage multiple workspaces, group projects together",
 	"version": "0.0.1",
 	"publisher": "hongkongprogrammingsociety",
