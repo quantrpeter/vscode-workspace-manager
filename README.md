@@ -2,8 +2,6 @@
 
 Group your projects and open them by one click
 
-![]()
-
 ## deploy
 
 change version in package.json

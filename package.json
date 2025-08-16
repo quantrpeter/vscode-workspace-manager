@@ -1,7 +1,7 @@
 {
 	"name": "vscode-workspace-manager",
-	"displayName": "vscode-workspace-manager",
-	"description": "Manage multiple workspace, group projects together",
+	"displayName": "Workspace Manager",
+	"description": "Manage multiple workspaces, group projects together",
 	"version": "0.0.1",
 	"publisher": "hongkongprogrammingsociety",
 	"engines": {
@@ -15,6 +15,10 @@
 		"onCommand:vscode-workspace-manager.editWorkspaceName",
 		"onView:createWorkspaceButton"
 	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/quantrpeter/vscode-workspace-manager"
+	},
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
