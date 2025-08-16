@@ -75,8 +75,28 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Command to handle clicking a workspace name
 	const openWorkspaceByNameDisposable = vscode.commands.registerCommand('vscode-workspace-manager.openWorkspaceByName', async (name: string) => {
-		vscode.window.showInformationMessage(`Workspace selected: ${name}`);
-		// You can add logic here to open a folder or perform other actions
+	 	// Get saved project paths for this workspace
+	 	const projectPathsKey = 'projectPaths_' + name;
+	 	const projectPaths: string[] = context.globalState.get<string[]>(projectPathsKey, []);
+
+	 	if (projectPaths.length === 0) {
+	 		vscode.window.showWarningMessage(`No project paths saved for workspace '${name}'.`);
+	 		return;
+	 	}
+
+	 	// Create a temporary .code-workspace file with all project paths
+	 	const fs = require('fs');
+	 	const path = require('path');
+	 	const os = require('os');
+	 	const workspaceFilePath = path.join(os.tmpdir(), `vscode-workspace-manager-${Date.now()}.code-workspace`);
+	 	const workspaceData = {
+	 		folders: projectPaths.map(p => ({ path: p })),
+	 		settings: {}
+	 	};
+	 	fs.writeFileSync(workspaceFilePath, JSON.stringify(workspaceData, null, 2));
+
+	 	// Open the workspace file in a new window
+	 	vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(workspaceFilePath), true);
 	});
 	context.subscriptions.push(openWorkspaceByNameDisposable);
 
@@ -93,20 +113,43 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		);
 
-		panel.webview.html = getEditWorkspaceWebviewHtml(String(oldName));
+		// Load projectPaths for this workspace
+		const projectPathsKey = 'projectPaths_' + oldName;
+		const projectPaths: string[] = context.globalState.get<string[]>(projectPathsKey, []);
+
+		// Inject projectPaths into webview HTML as a script
+		let html = getEditWorkspaceWebviewHtml(String(oldName));
+	 	html = html.replace('<script>', `<script>\nwindow.initialProjectPaths = ${JSON.stringify(projectPaths)};`);
+		panel.webview.html = html;
 
 		// Handle messages from the webview
 		panel.webview.onDidReceiveMessage(async message => {
 			if (message.command === 'save' && message.newName) {
 				const newName = message.newName.trim();
-				if (newName.length > 0 && newName !== oldName) {
-					const idx = workspaceNames.indexOf(String(oldName));
-					if (idx !== -1) {
+				const idx = workspaceNames.indexOf(String(oldName));
+				if (newName.length > 0 && idx !== -1) {
+					if (newName !== oldName) {
 						workspaceNames[idx] = newName;
 						await context.globalState.update(WORKSPACE_NAMES_KEY, workspaceNames);
 						treeProvider.refresh();
-						panel.dispose();
 					}
+					// Save project paths for newName
+					await context.globalState.update('projectPaths_' + newName, message.projectPaths || []);
+					panel.dispose();
+				} else if (idx !== -1) {
+					// Name unchanged, still save project paths
+					await context.globalState.update('projectPaths_' + oldName, message.projectPaths || []);
+					panel.dispose();
+				}
+			} else if (message.command === 'chooseFolder') {
+				const folders = await vscode.window.showOpenDialog({
+					canSelectFiles: false,
+					canSelectFolders: true,
+					canSelectMany: false,
+					openLabel: 'Select Folder'
+				});
+				if (folders && folders.length > 0) {
+					panel.webview.postMessage({ command: 'addPath', path: folders[0].fsPath });
 				}
 			} else if (message.command === 'cancel') {
 				panel.dispose();

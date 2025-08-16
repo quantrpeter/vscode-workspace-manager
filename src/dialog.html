@@ -86,22 +86,79 @@
 
 <body>
 	<div class="container">
-		<h2>Edit Workspace Name</h2>
+		<h2>Edit Workspace</h2>
 		<input id="workspaceName" type="text" value="" autofocus />
-		<div>
+		<h3>Project Paths</h3>
+		<table id="projectPathsTable" style="width:80%;margin-bottom:16px;">
+			<thead>
+				<tr>
+					<th style="text-align:left;">Path</th>
+					<th style="text-align:left;">Actions</th>
+				</tr>
+			</thead>
+			<tbody id="projectPathsBody">
+				<!-- Project paths will be inserted here -->
+			</tbody>
+		</table>
+		<button id="addPathBtn">Add Project Path</button>
+		<div style="margin-top:16px;">
 			<button id="saveBtn">Save</button>
 			<button id="cancelBtn">Cancel</button>
 		</div>
 	</div>
 	<script>
 		const vscode = acquireVsCodeApi();
+
+		// Store project paths in memory
+		let projectPaths = [];
+
+		// Load initial projectPaths from VS Code extension
+		if (window.initialProjectPaths && Array.isArray(window.initialProjectPaths)) {
+			projectPaths = window.initialProjectPaths;
+		}
+
+		function renderProjectPaths() {
+			const tbody = document.getElementById('projectPathsBody');
+			tbody.innerHTML = '';
+			projectPaths.forEach((path, idx) => {
+				const tr = document.createElement('tr');
+				const tdPath = document.createElement('td');
+				tdPath.textContent = path;
+				const tdActions = document.createElement('td');
+				const removeBtn = document.createElement('button');
+				removeBtn.textContent = 'Remove';
+				removeBtn.onclick = () => {
+					projectPaths.splice(idx, 1);
+					renderProjectPaths();
+				};
+				tdActions.appendChild(removeBtn);
+				tr.appendChild(tdPath);
+				tr.appendChild(tdActions);
+				tbody.appendChild(tr);
+			});
+		}
+
+		document.getElementById('addPathBtn').onclick = () => {
+			vscode.postMessage({ command: 'chooseFolder' });
+		};
+
+		window.addEventListener('message', event => {
+			const message = event.data;
+			if (message.command === 'addPath' && message.path) {
+				projectPaths.push(message.path);
+				renderProjectPaths();
+			}
+		});
+
 		document.getElementById('saveBtn').onclick = () => {
 			const newName = document.getElementById('workspaceName').value;
-			vscode.postMessage({ command: 'save', newName });
+			vscode.postMessage({ command: 'save', newName, projectPaths });
 		};
 		document.getElementById('cancelBtn').onclick = () => {
 			vscode.postMessage({ command: 'cancel' });
 		};
+
+		renderProjectPaths();
 	</script>
 </body>
 
