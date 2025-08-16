@@ -245,8 +245,15 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		// Overwrite current settings
 		console.log('snapshot', snapshot);
-		// Update local workspaceNames and refresh tree
+		// Update local workspaceNames and projectPaths in globalState
 		workspaceNames = snapshot.workspaceNames || [];
+		if (snapshot.projectPaths && typeof snapshot.projectPaths === 'object') {
+			for (const name of workspaceNames) {
+				const projectPathsKey = 'projectPaths_' + name;
+				const paths = snapshot.projectPaths[name] || [];
+				await context.globalState.update(projectPathsKey, paths);
+			}
+		}
 		treeProvider.refresh();
 		vscode.window.showInformationMessage(`Loaded settings from snapshot at ${snapshot.timestamp ? new Date(snapshot.timestamp).toLocaleString() : 'unknown time'}`);
 	});
