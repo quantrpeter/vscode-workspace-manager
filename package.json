@@ -1,8 +1,9 @@
 {
 	"name": "vscode-workspace-manager",
 	"displayName": "vscode-workspace-manager",
-	"description": "",
+	"description": "Manage multiple workspace, group projects together",
 	"version": "0.0.1",
+	"publisher": "hongkongprogrammingsociety",
 	"engines": {
 		"vscode": "^1.103.0"
 	},
