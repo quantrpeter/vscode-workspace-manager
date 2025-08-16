@@ -1,0 +1,66 @@
+{
+	"name": "vscode-workspace-manager",
+	"displayName": "vscode-workspace-manager",
+	"description": "",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.103.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "vscode-workspace-manager.createWorkspace",
+				"title": "WM: Create Workspace"
+			},
+			{
+				"command": "vscode-workspace-manager.editWorkspaceName",
+				"title": "Edit"
+			}
+		],
+		"views": {
+			"explorer": [
+				{
+					"id": "createWorkspaceButton",
+					"name": "WM: Create Workspace",
+					"icon": "$(folder-open)"
+				}
+			]
+		},
+		"menus": {
+			"view/item/context": [
+				{
+					"command": "vscode-workspace-manager.editWorkspaceName",
+					"when": "view == createWorkspaceButton && viewItem == workspaceItem",
+					"group": "inline"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src",
+		"test": "vscode-test"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.103.0",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "22.x",
+		"@typescript-eslint/eslint-plugin": "^8.39.0",
+		"@typescript-eslint/parser": "^8.39.0",
+		"eslint": "^9.32.0",
+		"typescript": "^5.9.2",
+		"ts-loader": "^9.5.2",
+		"webpack": "^5.101.0",
+		"webpack-cli": "^6.0.1",
+		"@vscode/test-cli": "^0.0.11",
+		"@vscode/test-electron": "^2.5.2"
+	}
+}
