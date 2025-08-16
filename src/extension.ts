@@ -132,6 +132,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Load projectPaths for this workspace
 		const projectPathsKey = 'projectPaths_' + oldName;
 		const projectPaths: string[] = context.globalState.get<string[]>(projectPathsKey, []);
+		console.log('projectPaths', projectPaths);
 
 		// Inject projectPaths into webview HTML as a script
 		let html = getEditWorkspaceWebviewHtml(String(oldName), panel);

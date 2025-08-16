@@ -2,7 +2,7 @@
 	"name": "vscode-hkps-workspace-manager",
 	"displayName": "Workspace Manager (HKPS)",
 	"description": "Manage multiple workspaces, group projects together",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "hongkongprogrammingsociety",
 	"engines": {
 		"vscode": "^1.103.0"
