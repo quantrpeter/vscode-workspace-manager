@@ -48,6 +48,13 @@ export function activate(context: vscode.ExtensionContext) {
 				command: 'vscode-workspace-manager.syncSetting',
 				title: 'Sync Setting'
 			};
+			// Add the 'Load Setting' button in the third position
+			const loadSettingItem = new vscode.TreeItem('Load Setting', vscode.TreeItemCollapsibleState.None);
+			loadSettingItem.command = {
+				command: 'vscode-workspace-manager.loadSetting',
+				title: 'Load Setting'
+			};
+			items.unshift(loadSettingItem);
 			items.unshift(syncSettingItem);
 			items.unshift(createWorkspaceItem);
 			return items;
@@ -165,27 +172,66 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register the syncSetting command
 	const syncSettingDisposable = vscode.commands.registerCommand('vscode-workspace-manager.syncSetting', async () => {
-		 // Save the entire workspaceNames and projectPaths as a single snapshot with timestamp
-		 const config = vscode.workspace.getConfiguration('vscodeWorkspaceManager');
-		 let projectPathsObj: { [key: string]: string[] } = {};
-		 let count = 0;
-		 for (const name of workspaceNames) {
-			 const projectPathsKey = 'projectPaths_' + name;
-			 let projectPaths: string[] = context.globalState.get<string[]>(projectPathsKey, []);
-			 projectPathsObj[name] = projectPaths;
-			 count++;
-		 }
-		 const now = Date.now();
-		 const snapshotKey = `syncSnapshot_${now}`;
-		 const snapshot = {
-			 workspaceNames,
-			 projectPaths: projectPathsObj,
-			 timestamp: now
-		 };
-		 await config.update(snapshotKey, snapshot, vscode.ConfigurationTarget.Global);
-		 vscode.window.showInformationMessage(`Settings snapshot saved: ${workspaceNames.length} workspaces, ${count} project path sets, timestamp ${now}.`);
+		// Save the entire workspaceNames and projectPaths as a single snapshot with timestamp
+		const config = vscode.workspace.getConfiguration('vscodeWorkspaceManager');
+		let projectPathsObj: { [key: string]: string[] } = {};
+		let count = 0;
+		for (const name of workspaceNames) {
+			const projectPathsKey = 'projectPaths_' + name;
+			let projectPaths: string[] = context.globalState.get<string[]>(projectPathsKey, []);
+			projectPathsObj[name] = projectPaths;
+			count++;
+		}
+		const now = Date.now();
+		const snapshotKey = `syncSnapshot_${now}`;
+		const snapshot = {
+			workspaceNames,
+			projectPaths: projectPathsObj,
+			timestamp: now
+		};
+		await config.update(snapshotKey, snapshot, vscode.ConfigurationTarget.Global);
+		vscode.window.showInformationMessage(`Settings snapshot saved: ${workspaceNames.length} workspaces, ${count} project path sets, timestamp ${now}.`);
 	});
 	context.subscriptions.push(syncSettingDisposable);
+
+
+	// Register the loadSetting command
+	const loadSettingDisposable = vscode.commands.registerCommand('vscode-workspace-manager.loadSetting', async () => {
+		const config = vscode.workspace.getConfiguration('vscodeWorkspaceManager');
+		// Get all keys in the config
+		const all = config as any;
+		const keys = Object.keys(all);
+		// Filter for snapshot keys
+		const snapshotKeys = keys.filter(k => k.startsWith('syncSnapshot_'));
+		if (snapshotKeys.length === 0) {
+			vscode.window.showInformationMessage('No saved settings snapshots found.');
+			return;
+		}
+		// Get all snapshots and show quick pick
+		const snapshots = snapshotKeys.map(k => ({
+			label: k,
+			description: '',
+			key: k,
+			value: config.get(k)
+		}));
+		const pick = await vscode.window.showQuickPick(snapshots, {
+			placeHolder: 'Select a settings snapshot to load'
+		});
+		if (!pick) {
+			return;
+		}
+		// Load the selected snapshot
+		const snapshot = pick.value as { workspaceNames?: string[]; projectPaths?: { [key: string]: string[] }; timestamp?: number };
+		if (!snapshot || !Array.isArray(snapshot.workspaceNames) || typeof snapshot.projectPaths !== 'object') {
+			vscode.window.showErrorMessage('Invalid snapshot format.');
+			return;
+		}
+		// Overwrite current settings
+		await config.update('workspaceNames', snapshot.workspaceNames, vscode.ConfigurationTarget.Global);
+		await config.update('projectPaths', snapshot.projectPaths, vscode.ConfigurationTarget.Global);
+		vscode.window.showInformationMessage(`Loaded settings from ${pick.label}`);
+	});
+	context.subscriptions.push(loadSettingDisposable);
 
 	// Helper function to load dialog.html and inject workspace name
 	const fs = require('fs');
