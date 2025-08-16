@@ -1,6 +1,6 @@
 # workspace manager
 
-![](https://github.com/quantrpeter/vscode-workspace-manager/blob/main/screencapture/introduction.gif?raw=true)
+Group projects into workspace and open them by one click
 
 # tutorial
 
