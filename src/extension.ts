@@ -255,7 +255,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const fs = require('fs');
 	const path = require('path');
 	function getEditWorkspaceWebviewHtml(oldName: string, panel: vscode.WebviewPanel): string {
-		const htmlPath = path.join(context.extensionPath, 'src', 'dialog.html');
+		const htmlPath = path.join(context.extensionPath, 'assets', 'dialog.html');
 		let html = fs.readFileSync(htmlPath, 'utf8');
 		// Inject workspace name value
 		html = html.replace('value=""', `value="${oldName}"`);
