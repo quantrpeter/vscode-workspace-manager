@@ -172,7 +172,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register the syncSetting command
 	const syncSettingDisposable = vscode.commands.registerCommand('vscode-workspace-manager.syncSetting', async () => {
-		// Save the entire workspaceNames and projectPaths as a single snapshot with timestamp
+		// Save the entire workspaceNames and projectPaths as a single snapshot in an array
 		const config = vscode.workspace.getConfiguration('vscodeWorkspaceManager');
 		let projectPathsObj: { [key: string]: string[] } = {};
 		let count = 0;
@@ -183,13 +183,14 @@ export function activate(context: vscode.ExtensionContext) {
 			count++;
 		}
 		const now = Date.now();
-		const snapshotKey = `syncSnapshot_${now}`;
 		const snapshot = {
 			workspaceNames,
 			projectPaths: projectPathsObj,
 			timestamp: now
 		};
-		await config.update(snapshotKey, snapshot, vscode.ConfigurationTarget.Global);
+		let snapshots: any[] = config.get('syncSnapshots', []);
+		snapshots.push(snapshot);
+		await config.update('syncSnapshots', snapshots, vscode.ConfigurationTarget.Global);
 		vscode.window.showInformationMessage(`Settings snapshot saved: ${workspaceNames.length} workspaces, ${count} project path sets, timestamp ${now}.`);
 	});
 	context.subscriptions.push(syncSettingDisposable);
@@ -198,23 +199,21 @@ export function activate(context: vscode.ExtensionContext) {
 	// Register the loadSetting command
 	const loadSettingDisposable = vscode.commands.registerCommand('vscode-workspace-manager.loadSetting', async () => {
 		const config = vscode.workspace.getConfiguration('vscodeWorkspaceManager');
-		// Get all keys in the config
-		const all = config as any;
-		const keys = Object.keys(all);
-		// Filter for snapshot keys
-		const snapshotKeys = keys.filter(k => k.startsWith('syncSnapshot_'));
-		if (snapshotKeys.length === 0) {
+		// Get all snapshots from the array
+		const snapshots: any[] = config.get('syncSnapshots', []);
+		if (!snapshots || snapshots.length === 0) {
 			vscode.window.showInformationMessage('No saved settings snapshots found.');
 			return;
 		}
-		// Get all snapshots and show quick pick
-		const snapshots = snapshotKeys.map(k => ({
-			label: k,
-			description: '',
-			key: k,
-			value: config.get(k)
-		}));
-		const pick = await vscode.window.showQuickPick(snapshots, {
+		 // Sort snapshots by timestamp descending
+		 const sorted = [...snapshots].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+		 // Show quick pick with timestamp
+		 const picks = sorted.map((snap, idx) => ({
+			 label: `${snap.timestamp ? new Date(snap.timestamp).toLocaleString() : 'no timestamp'}`,
+			 description: '',
+			 value: snap
+		 }));
+		const pick = await vscode.window.showQuickPick(picks, {
 			placeHolder: 'Select a settings snapshot to load'
 		});
 		if (!pick) {
@@ -227,9 +226,11 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 		// Overwrite current settings
-		await config.update('workspaceNames', snapshot.workspaceNames, vscode.ConfigurationTarget.Global);
-		await config.update('projectPaths', snapshot.projectPaths, vscode.ConfigurationTarget.Global);
-		vscode.window.showInformationMessage(`Loaded settings from ${pick.label}`);
+		console.log('snapshot', snapshot);
+		// Update local workspaceNames and refresh tree
+		workspaceNames = snapshot.workspaceNames || [];
+		treeProvider.refresh();
+		vscode.window.showInformationMessage(`Loaded settings from snapshot at ${snapshot.timestamp ? new Date(snapshot.timestamp).toLocaleString() : 'unknown time'}`);
 	});
 	context.subscriptions.push(loadSettingDisposable);
 

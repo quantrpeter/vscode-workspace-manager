@@ -48,18 +48,10 @@
 		"configuration": {
 			"title": "Workspace Manager",
 			"properties": {
-				"vscodeWorkspaceManager.workspaceNames": {
+				"vscodeWorkspaceManager.syncSnapshots": {
 					"type": "array",
-					"items": {
-						"type": "string"
-					},
 					"default": [],
-					"description": "List of workspace names."
-				},
-				"vscodeWorkspaceManager.projectPaths": {
-					"type": "object",
-					"default": {},
-					"description": "Project paths for each workspace (internal use)."
+					"description": "List of all workspace/project path snapshots with timestamp."
 				}
 			}
 		}
