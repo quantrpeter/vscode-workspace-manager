@@ -4,119 +4,111 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Edit Workspace Name</title>
+	<title>Edit Workspace</title>
 	<style>
 		body {
-			font-family: sans-serif;
+			background-color: var(--vscode-editor-background);
+			min-height: 100vh;
 			display: flex;
-			flex-direction: column;
 			align-items: center;
 			justify-content: center;
-			height: 100vh;
-			margin: 0;
-			background-color: var(--vscode-editor-background);
-		}
-
-		h2 {
-			color: var(--vscode-editor-foreground);
 		}
 
 		.container {
-			width: 600px;
-			height: 400px;
+			width: 100vw;
+			height: 100vh;
 			display: flex;
-			flex-direction: column;
-			justify-content: center;
 			align-items: center;
-			background: var(--vscode-sideBar-background);
-			border-radius: 8px;
-			box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+			justify-content: center;
+		}
+
+		.row {
+			width: 100%;
+			display: flex;
+			justify-content: center;
+		}
+
+		.card {
+			margin-top: 40px;
+			background: var(--vscode-sideBar-background) !important;
+			color: var(--vscode-editor-foreground);
+			min-width: 600px;
 		}
 
 		label,
-		input {
-			color: var(--vscode-editor-foreground);
-			font-size: 1.2em;
+		input,
+		h5,
+		h6,
+		th,
+		td {
+			color: var(--vscode-editor-foreground) !important;
 		}
 
-		input {
-			width: 80%;
-			padding: 8px;
-			margin: 16px 0;
-			border-radius: 4px;
-			border: 1px solid var(--vscode-input-border);
+		.input-field input {
 			background: var(--vscode-input-background);
 			color: var(--vscode-input-foreground);
+			border-bottom: 1px solid var(--vscode-input-border);
 		}
 
-		button {
-			margin: 8px;
-			padding: 8px 24px;
-			font-size: 1em;
-			border-radius: 4px;
-			border: none;
+		.btn {
 			background: var(--vscode-button-background);
 			color: var(--vscode-button-foreground);
-			cursor: pointer;
 		}
 
-		button:hover {
+		.btn:hover {
 			background: var(--vscode-button-hoverBackground);
 		}
 
-		@media (prefers-color-scheme: dark) {
-			body {
-				background-color: var(--vscode-editor-background);
-			}
-			.container {
-				background: var(--vscode-sideBar-background);
-			}
-		}
-
-		@media (prefers-color-scheme: light) {
-			body {
-				background-color: var(--vscode-editor-background);
-			}
-			.container {
-				background: var(--vscode-sideBar-background);
-			}
+		table.striped>tbody>tr>td {
+			color: var(--vscode-editor-foreground);
 		}
 	</style>
 </head>
 
 <body>
 	<div class="container">
-		<h2>Edit Workspace</h2>
-		<input id="workspaceName" type="text" value="" autofocus />
-		<h3>Project Paths</h3>
-		<table id="projectPathsTable" style="width:80%;margin-bottom:16px;">
-			<thead>
-				<tr>
-					<th style="text-align:left;">Path</th>
-					<th style="text-align:left;">Actions</th>
-				</tr>
-			</thead>
-			<tbody id="projectPathsBody">
-				<!-- Project paths will be inserted here -->
-			</tbody>
-		</table>
-		<button id="addPathBtn">Add Project Path</button>
-		<div style="margin-top:16px;">
-			<button id="saveBtn">Save</button>
-			<button id="cancelBtn">Cancel</button>
+		<div class="row">
+			<div class="col">
+				<div class="card">
+					<div class="card-content">
+						<span class="card-title">Edit Workspace</span>
+						<div class="input-field">
+							<input id="workspaceName" type="text" value="" autofocus />
+							<label for="workspaceName">Workspace Name</label>
+						</div>
+						<h6>Project Paths</h6>
+						<table id="projectPathsTable" class="striped">
+							<thead>
+								<tr>
+									<th>Path</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="projectPathsBody">
+								<!-- Project paths will be inserted here -->
+							</tbody>
+						</table>
+						<div class="section">
+							<a class="btn waves-effect" id="addPathBtn">Add Project</a>
+						</div>
+					</div>
+					<div class="card-action">
+						<a class="btn" id="saveBtn">Save</a>
+						<a class="btn grey lighten-1 black-text" id="cancelBtn">Cancel</a>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			M.updateTextFields();
+		});
 		const vscode = acquireVsCodeApi();
-
-		// Store project paths in memory
 		let projectPaths = [];
-
-		// Load initial projectPaths from VS Code extension
 		if (window.initialProjectPaths && Array.isArray(window.initialProjectPaths)) {
 			projectPaths = window.initialProjectPaths;
 		}
-
 		function renderProjectPaths() {
 			const tbody = document.getElementById('projectPathsBody');
 			tbody.innerHTML = '';
@@ -125,7 +117,8 @@
 				const tdPath = document.createElement('td');
 				tdPath.textContent = path;
 				const tdActions = document.createElement('td');
-				const removeBtn = document.createElement('button');
+				const removeBtn = document.createElement('a');
+				removeBtn.className = 'btn red lighten-1';
 				removeBtn.textContent = 'Remove';
 				removeBtn.onclick = () => {
 					projectPaths.splice(idx, 1);
@@ -137,11 +130,9 @@
 				tbody.appendChild(tr);
 			});
 		}
-
 		document.getElementById('addPathBtn').onclick = () => {
 			vscode.postMessage({ command: 'chooseFolder' });
 		};
-
 		window.addEventListener('message', event => {
 			const message = event.data;
 			if (message.command === 'addPath' && message.path) {
@@ -149,7 +140,6 @@
 				renderProjectPaths();
 			}
 		});
-
 		document.getElementById('saveBtn').onclick = () => {
 			const newName = document.getElementById('workspaceName').value;
 			vscode.postMessage({ command: 'save', newName, projectPaths });
@@ -157,7 +147,6 @@
 		document.getElementById('cancelBtn').onclick = () => {
 			vscode.postMessage({ command: 'cancel' });
 		};
-
 		renderProjectPaths();
 	</script>
 </body>

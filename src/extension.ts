@@ -37,7 +37,12 @@ export function activate(context: vscode.ExtensionContext) {
 				items.push(workspaceItem);
 			}
 			// Add the 'Create Workspace' button at the top
-			items.unshift(new vscode.TreeItem('Create Workspace', vscode.TreeItemCollapsibleState.None));
+			const createWorkspaceItem = new vscode.TreeItem('Create Workspace', vscode.TreeItemCollapsibleState.None);
+			createWorkspaceItem.command = {
+				command: 'vscode-workspace-manager.createWorkspace',
+				title: 'Create Workspace'
+			};
+			items.unshift(createWorkspaceItem);
 			return items;
 		}
 		refresh() {
@@ -50,13 +55,6 @@ export function activate(context: vscode.ExtensionContext) {
 		treeDataProvider: treeProvider,
 		showCollapseAll: false
 	});
-
-	createWorkspaceButton.onDidChangeSelection(e => {
-		if (e.selection.length && e.selection[0].label === 'Create Workspace') {
-			vscode.commands.executeCommand('vscode-workspace-manager.createWorkspace');
-		}
-	});
-
 	context.subscriptions.push(createWorkspaceButton);
 
 	// Register the createWorkspace command
@@ -75,28 +73,28 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Command to handle clicking a workspace name
 	const openWorkspaceByNameDisposable = vscode.commands.registerCommand('vscode-workspace-manager.openWorkspaceByName', async (name: string) => {
-	 	// Get saved project paths for this workspace
-	 	const projectPathsKey = 'projectPaths_' + name;
-	 	const projectPaths: string[] = context.globalState.get<string[]>(projectPathsKey, []);
+		// Get saved project paths for this workspace
+		const projectPathsKey = 'projectPaths_' + name;
+		const projectPaths: string[] = context.globalState.get<string[]>(projectPathsKey, []);
 
-	 	if (projectPaths.length === 0) {
-	 		vscode.window.showWarningMessage(`No project paths saved for workspace '${name}'.`);
-	 		return;
-	 	}
+		if (projectPaths.length === 0) {
+			vscode.window.showWarningMessage(`No project paths saved for workspace '${name}'.`);
+			return;
+		}
 
-	 	// Create a temporary .code-workspace file with all project paths
-	 	const fs = require('fs');
-	 	const path = require('path');
-	 	const os = require('os');
-	 	const workspaceFilePath = path.join(os.tmpdir(), `vscode-workspace-manager-${Date.now()}.code-workspace`);
-	 	const workspaceData = {
-	 		folders: projectPaths.map(p => ({ path: p })),
-	 		settings: {}
-	 	};
-	 	fs.writeFileSync(workspaceFilePath, JSON.stringify(workspaceData, null, 2));
+		// Create a temporary .code-workspace file with all project paths
+		const fs = require('fs');
+		const path = require('path');
+		const os = require('os');
+		const workspaceFilePath = path.join(os.tmpdir(), `vscode-workspace-manager-${Date.now()}.code-workspace`);
+		const workspaceData = {
+			folders: projectPaths.map(p => ({ path: p })),
+			settings: {}
+		};
+		fs.writeFileSync(workspaceFilePath, JSON.stringify(workspaceData, null, 2));
 
-	 	// Open the workspace file in a new window
-	 	vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(workspaceFilePath), true);
+		// Open the workspace file in a new window
+		vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(workspaceFilePath), true);
 	});
 	context.subscriptions.push(openWorkspaceByNameDisposable);
 
@@ -118,8 +116,8 @@ export function activate(context: vscode.ExtensionContext) {
 		const projectPaths: string[] = context.globalState.get<string[]>(projectPathsKey, []);
 
 		// Inject projectPaths into webview HTML as a script
-		let html = getEditWorkspaceWebviewHtml(String(oldName));
-	 	html = html.replace('<script>', `<script>\nwindow.initialProjectPaths = ${JSON.stringify(projectPaths)};`);
+		let html = getEditWorkspaceWebviewHtml(String(oldName), panel);
+		html = html.replace('<script>', `<script>\nwindow.initialProjectPaths = ${JSON.stringify(projectPaths)};`);
 		panel.webview.html = html;
 
 		// Handle messages from the webview
@@ -161,11 +159,19 @@ export function activate(context: vscode.ExtensionContext) {
 	// Helper function to load dialog.html and inject workspace name
 	const fs = require('fs');
 	const path = require('path');
-	function getEditWorkspaceWebviewHtml(oldName: string): string {
+	function getEditWorkspaceWebviewHtml(oldName: string, panel: vscode.WebviewPanel): string {
 		const htmlPath = path.join(context.extensionPath, 'src', 'dialog.html');
 		let html = fs.readFileSync(htmlPath, 'utf8');
 		// Inject workspace name value
 		html = html.replace('value=""', `value="${oldName}"`);
+
+		// Get webview URIs for Materialize assets
+		const cssUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'assets', 'materialize', 'css', 'materialize.min.css')));
+		const jsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'assets', 'materialize', 'js', 'materialize.min.js')));
+
+		// Inject CSS and JS links before </head> and before </body>
+		html = html.replace('</head>', `<link rel="stylesheet" href="${cssUri}">\n</head>`);
+		html = html.replace('</body>', `<script src="${jsUri}"></script>\n</body>`);
 		return html;
 	}
 }

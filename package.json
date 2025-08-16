@@ -31,7 +31,7 @@
 			"explorer": [
 				{
 					"id": "createWorkspaceButton",
-					"name": "WM: Create Workspace",
+					"name": "Workspace Manager",
 					"icon": "$(folder-open)"
 				}
 			]
