@@ -10,6 +10,7 @@
 	"categories": [
 		"Other"
 	],
+	"icon": "assets/image/extensionIcon.png",
 	"activationEvents": [
 		"onCommand:vscode-workspace-manager.createWorkspace",
 		"onCommand:vscode-workspace-manager.editWorkspaceName",
