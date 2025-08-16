@@ -10,11 +10,11 @@
 	"categories": [
 		"Other"
 	],
- 	"activationEvents": [
- 		"onCommand:vscode-workspace-manager.createWorkspace",
- 		"onCommand:vscode-workspace-manager.editWorkspaceName",
- 		"onView:createWorkspaceButton"
- 	],
+	"activationEvents": [
+		"onCommand:vscode-workspace-manager.createWorkspace",
+		"onCommand:vscode-workspace-manager.editWorkspaceName",
+		"onView:createWorkspaceButton"
+	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
@@ -44,6 +44,24 @@
 					"group": "inline"
 				}
 			]
+		},
+		"configuration": {
+			"title": "Workspace Manager",
+			"properties": {
+				"vscodeWorkspaceManager.workspaceNames": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "List of workspace names."
+				},
+				"vscodeWorkspaceManager.projectPaths": {
+					"type": "object",
+					"default": {},
+					"description": "Project paths for each workspace (internal use)."
+				}
+			}
 		}
 	},
 	"scripts": {
