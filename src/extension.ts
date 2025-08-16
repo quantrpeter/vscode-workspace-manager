@@ -34,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 					arguments: [name]
 				};
 				workspaceItem.contextValue = 'workspaceItem'; // Used for context menu
+				workspaceItem.iconPath = new vscode.ThemeIcon('folder');
 				items.push(workspaceItem);
 			}
 			// Add the 'Create Workspace' button at the top
@@ -42,18 +43,21 @@ export function activate(context: vscode.ExtensionContext) {
 				command: 'vscode-workspace-manager.createWorkspace',
 				title: 'Create Workspace'
 			};
+			createWorkspaceItem.iconPath = new vscode.ThemeIcon('add');
 			// Add the 'Sync Setting' button in the second position
 			const syncSettingItem = new vscode.TreeItem('Sync Setting', vscode.TreeItemCollapsibleState.None);
 			syncSettingItem.command = {
 				command: 'vscode-workspace-manager.syncSetting',
 				title: 'Sync Setting'
 			};
+			syncSettingItem.iconPath = new vscode.ThemeIcon('sync');
 			// Add the 'Load Setting' button in the third position
 			const loadSettingItem = new vscode.TreeItem('Load Setting', vscode.TreeItemCollapsibleState.None);
 			loadSettingItem.command = {
 				command: 'vscode-workspace-manager.loadSetting',
 				title: 'Load Setting'
 			};
+			loadSettingItem.iconPath = new vscode.ThemeIcon('cloud-download');
 			items.unshift(loadSettingItem);
 			items.unshift(syncSettingItem);
 			items.unshift(createWorkspaceItem);
