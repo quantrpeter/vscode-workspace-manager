@@ -94,6 +94,7 @@
 					</div>
 					<div class="card-action">
 						<a class="btn" id="saveBtn">Save</a>
+						<a class="btn red lighten-1" id="deleteBtn">Delete</a>
 						<a class="btn grey lighten-1 black-text" id="cancelBtn">Cancel</a>
 					</div>
 				</div>
@@ -143,6 +144,10 @@
 		document.getElementById('saveBtn').onclick = () => {
 			const newName = document.getElementById('workspaceName').value;
 			vscode.postMessage({ command: 'save', newName, projectPaths });
+		};
+		document.getElementById('deleteBtn').onclick = () => {
+			const name = document.getElementById('workspaceName').value;
+			vscode.postMessage({ command: 'delete', name });
 		};
 		document.getElementById('cancelBtn').onclick = () => {
 			vscode.postMessage({ command: 'cancel' });

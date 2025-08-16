@@ -153,6 +153,19 @@ export function activate(context: vscode.ExtensionContext) {
 					await context.globalState.update('projectPaths_' + oldName, message.projectPaths || []);
 					panel.dispose();
 				}
+			} else if (message.command === 'delete' && message.name) {
+				const name = String(message.name).trim();
+				const idx = workspaceNames.indexOf(name);
+				if (idx !== -1) {
+					workspaceNames.splice(idx, 1);
+					await context.globalState.update(WORKSPACE_NAMES_KEY, workspaceNames);
+					await context.globalState.update('projectPaths_' + name, []);
+					treeProvider.refresh();
+					panel.dispose();
+					vscode.window.showInformationMessage(`Workspace '${name}' deleted.`);
+				} else {
+					vscode.window.showWarningMessage(`Workspace '${name}' not found.`);
+				}
 			} else if (message.command === 'chooseFolder') {
 				const folders = await vscode.window.showOpenDialog({
 					canSelectFiles: false,
@@ -205,14 +218,14 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage('No saved settings snapshots found.');
 			return;
 		}
-		 // Sort snapshots by timestamp descending
-		 const sorted = [...snapshots].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-		 // Show quick pick with timestamp
-		 const picks = sorted.map((snap, idx) => ({
-			 label: `${snap.timestamp ? new Date(snap.timestamp).toLocaleString() : 'no timestamp'}`,
-			 description: '',
-			 value: snap
-		 }));
+		// Sort snapshots by timestamp descending
+		const sorted = [...snapshots].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+		// Show quick pick with timestamp
+		const picks = sorted.map((snap, idx) => ({
+			label: `${snap.timestamp ? new Date(snap.timestamp).toLocaleString() : 'no timestamp'}`,
+			description: '',
+			value: snap
+		}));
 		const pick = await vscode.window.showQuickPick(picks, {
 			placeHolder: 'Select a settings snapshot to load'
 		});
