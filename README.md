@@ -2,6 +2,8 @@
 
 Group projects into workspace and open them by one click
 
+![](https://quantrpeter.wordpress.com/wp-content/uploads/2025/08/introduction.gif)
+
 # tutorial
 
 Click "Create Workspace"
