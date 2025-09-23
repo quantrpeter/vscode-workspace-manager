@@ -44,13 +44,13 @@ export function activate(context: vscode.ExtensionContext) {
 				title: 'Create Workspace'
 			};
 			createWorkspaceItem.iconPath = new vscode.ThemeIcon('add');
-			// Add the 'Sync Setting' button in the second position
-			const syncSettingItem = new vscode.TreeItem('Sync Setting', vscode.TreeItemCollapsibleState.None);
-			syncSettingItem.command = {
-				command: 'vscode-workspace-manager.syncSetting',
-				title: 'Sync Setting'
+			// Add the 'Save Setting' button in the second position
+			const saveSettingItem = new vscode.TreeItem('Save Setting', vscode.TreeItemCollapsibleState.None);
+			saveSettingItem.command = {
+				command: 'vscode-workspace-manager.saveSetting',
+				title: 'Save Setting'
 			};
-			syncSettingItem.iconPath = new vscode.ThemeIcon('sync');
+			saveSettingItem.iconPath = new vscode.ThemeIcon('save');
 			// Add the 'Load Setting' button in the third position
 			const loadSettingItem = new vscode.TreeItem('Load Setting', vscode.TreeItemCollapsibleState.None);
 			loadSettingItem.command = {
@@ -59,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 			};
 			loadSettingItem.iconPath = new vscode.ThemeIcon('cloud-download');
 			items.unshift(loadSettingItem);
-			items.unshift(syncSettingItem);
+			items.unshift(saveSettingItem);
 			items.unshift(createWorkspaceItem);
 			return items;
 		}
@@ -188,8 +188,8 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(editWorkspaceNameDisposable);
 
-	// Register the syncSetting command
-	const syncSettingDisposable = vscode.commands.registerCommand('vscode-workspace-manager.syncSetting', async () => {
+	// Register the saveSetting command
+	const saveSettingDisposable = vscode.commands.registerCommand('vscode-workspace-manager.saveSetting', async () => {
 		// Save the entire workspaceNames and projectPaths as a single snapshot in an array
 		const config = vscode.workspace.getConfiguration('vscodeWorkspaceManager');
 		let projectPathsObj: { [key: string]: string[] } = {};
@@ -211,7 +211,7 @@ export function activate(context: vscode.ExtensionContext) {
 		await config.update('syncSnapshots', snapshots, vscode.ConfigurationTarget.Global);
 		vscode.window.showInformationMessage(`Settings snapshot saved: ${workspaceNames.length} workspaces, ${count} project path sets, timestamp ${now}.`);
 	});
-	context.subscriptions.push(syncSettingDisposable);
+	context.subscriptions.push(saveSettingDisposable);
 
 
 	// Register the loadSetting command
