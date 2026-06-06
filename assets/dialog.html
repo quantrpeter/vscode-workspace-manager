@@ -90,6 +90,7 @@
 						</table>
 						<div class="section">
 							<a class="btn waves-effect" id="addPathBtn">Add Project</a>
+							<a class="btn waves-effect" id="addExistingBtn">Add existing projects</a>
 						</div>
 					</div>
 					<div class="card-action">
@@ -134,11 +135,27 @@
 		document.getElementById('addPathBtn').onclick = () => {
 			vscode.postMessage({ command: 'chooseFolder' });
 		};
+		document.getElementById('addExistingBtn').onclick = () => {
+			vscode.postMessage({ command: 'addExistingProjects' });
+		};
 		window.addEventListener('message', event => {
 			const message = event.data;
 			if (message.command === 'addPath' && message.path) {
-				projectPaths.push(message.path);
-				renderProjectPaths();
+				if (!projectPaths.includes(message.path)) {
+					projectPaths.push(message.path);
+					renderProjectPaths();
+				}
+			} else if (message.command === 'addPaths' && Array.isArray(message.paths)) {
+				let added = false;
+				message.paths.forEach((p) => {
+					if (p && !projectPaths.includes(p)) {
+						projectPaths.push(p);
+						added = true;
+					}
+				});
+				if (added) {
+					renderProjectPaths();
+				}
 			}
 		});
 		document.getElementById('saveBtn').onclick = () => {

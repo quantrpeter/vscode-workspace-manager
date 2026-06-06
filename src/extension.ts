@@ -181,6 +181,14 @@ export function activate(context: vscode.ExtensionContext) {
 				if (folders && folders.length > 0) {
 					panel.webview.postMessage({ command: 'addPath', path: folders[0].fsPath });
 				}
+			} else if (message.command === 'addExistingProjects') {
+				const workspaceFolders = vscode.workspace.workspaceFolders || [];
+				const paths = workspaceFolders.map(f => f.uri.fsPath);
+				if (paths.length > 0) {
+					panel.webview.postMessage({ command: 'addPaths', paths });
+				} else {
+					vscode.window.showInformationMessage('No workspace folders are currently open.');
+				}
 			} else if (message.command === 'cancel') {
 				panel.dispose();
 			}
