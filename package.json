@@ -3,7 +3,7 @@
 	"displayName": "Workspace Manager (HKPS)",
 	"description": "Manage multiple workspaces, group projects together",
 	"version": "0.0.6",
-	"publisher": "hongkongprogrammingsociety",
+	"publisher": "h7ngkongprogrammingsociety",
 	"engines": {
 		"vscode": "^1.103.0"
 	},
